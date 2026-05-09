@@ -1,4 +1,5 @@
 import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 function Analytics() {
   const [dateFrom, setDateFrom] = React.useState('');
@@ -8,7 +9,7 @@ function Analytics() {
 
   const fetchAnalytics = async () => {
     try {
-      let url = `http://localhost:5000/api/analytics?type=${activeTab.toLowerCase().replace('-', '')}`;
+      let url = `http://192.168.1.14:5000/api/analytics?type=${activeTab.toLowerCase().replace('-', '')}`;
       if (dateFrom && dateTo) {
         url += `&from=${dateFrom}&to=${dateTo}`;
       }
@@ -25,6 +26,15 @@ function Analytics() {
   }, [activeTab]);
 
   const fmt = (val) => val !== null && val !== undefined ? parseFloat(val).toFixed(2) : '--';
+
+  const pieData = [
+    { name: 'Paper', value: parseFloat(analyticsData?.paper_kg || 0) },
+    { name: 'Plastic', value: parseFloat(analyticsData?.plastic_kg || 0) },
+    { name: 'Glass', value: parseFloat(analyticsData?.glass_kg || 0) },
+    { name: 'Metal', value: parseFloat(analyticsData?.metal_kg || 0) },
+  ];
+
+  const PIE_COLORS = ['#2d5a27', '#4a8c3f', '#6abf5e', '#ffc107'];
 
   const ComingSoon = ({ type }) => (
     <div style={{
@@ -138,39 +148,74 @@ function Analytics() {
       {/* Recyclable Charts Area */}
       {activeTab === 'Recyclable' && (
         <div style={{
-          background: '#f5f5f0', borderRadius: '12px',
-          padding: '60px 40px', textAlign: 'center',
-          color: '#999', fontSize: '13px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: '12px',
+          background: '#fff', borderRadius: '12px',
+          padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          display: 'flex', flexDirection: 'column', gap: '32px',
         }}>
           {analyticsData?.chart_data?.length > 0 ? (
-            <div style={{ width: '100%' }}>
-              <div style={{ fontWeight: '700', fontSize: '14px', color: '#2d5a27', marginBottom: '12px' }}>
-                Daily Recyclable Waste (kg)
-              </div>
-              {analyticsData.chart_data.map((row, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{ width: '100px', fontSize: '12px', color: '#666' }}>{row.date}</div>
-                  <div style={{
-                    height: '20px',
-                    width: `${Math.min(parseFloat(row.total) * 50, 400)}px`,
-                    background: '#4a8c3f',
-                    borderRadius: '4px',
-                  }} />
-                  <div style={{ fontSize: '12px', color: '#333', fontWeight: '600' }}>{parseFloat(row.total).toFixed(2)} kg</div>
-                </div>
-              ))}
-            </div>
-          ) : (
             <>
+              {/* Bar Chart */}
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '14px', color: '#2d5a27', marginBottom: '16px' }}>
+                  📊 Daily Recyclable Waste (kg)
+                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={analyticsData.chart_data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#666' }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#666' }} />
+                    <Tooltip
+                      formatter={(value) => [`${parseFloat(value).toFixed(2)} kg`, 'Weight']}
+                      contentStyle={{ borderRadius: '8px', border: '1px solid #e0e0e0' }}
+                    />
+                    <Bar dataKey="total" fill="#4a8c3f" radius={[4, 4, 0, 0]} name="Weight (kg)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Pie Chart */}
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '14px', color: '#2d5a27', marginBottom: '16px' }}>
+                  🥧 Waste Sub-Type Breakdown
+                </div>
+                {pieData.every(d => d.value === 0) ? (
+                  <div style={{ textAlign: 'center', color: '#999', fontSize: '13px', padding: '40px' }}>
+                    No sub-type data available yet
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value.toFixed(2)} kg`}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                      <Tooltip formatter={(value) => [`${parseFloat(value).toFixed(2)} kg`]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </>
+          ) : (
+            <div style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '12px',
+              padding: '60px 40px', textAlign: 'center',
+            }}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
               </svg>
               <div style={{ fontWeight: '700', fontSize: '14px', color: '#ccc' }}>No Data Available</div>
-              <div>📡 Charts will appear here once hardware is connected...</div>
-            </>
+              <div style={{ color: '#999', fontSize: '13px' }}>📡 Charts will appear here once hardware is connected...</div>
+            </div>
           )}
         </div>
       )}
