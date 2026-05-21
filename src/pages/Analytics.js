@@ -23,7 +23,9 @@ function Analytics() {
 
   React.useEffect(() => {
     fetchAnalytics();
-  }, [activeTab]);
+    const interval = setInterval(fetchAnalytics, 10000);
+    return () => clearInterval(interval);
+  }, [activeTab, dateFrom, dateTo]);
 
   const fmt = (val) => val !== null && val !== undefined ? parseFloat(val).toFixed(2) : '--';
 
