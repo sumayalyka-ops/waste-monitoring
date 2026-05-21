@@ -1,27 +1,23 @@
 import React from 'react';
 
-function SystemStatus() {
+function SystemStatus({ appStartTime }) {
   const [uptime, setUptime] = React.useState(0);
+  const [statusData, setStatusData] = React.useState(null);
 
-React.useEffect(() => {
-    const fetchUptime = async () => {
-      try {
-        const res = await fetch('http://192.168.1.100:5000/api/uptime');
-        const data = await res.json();
-        setUptime(data.uptime_seconds);
-      } catch (err) {
-        console.error('Uptime fetch error:', err);
-      }
+  // Uptime — uses appStartTime from App.js, never resets on navigation
+  React.useEffect(() => {
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - appStartTime) / 1000);
+      setUptime(elapsed);
     };
-
-    fetchUptime();
-    const interval = setInterval(fetchUptime, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [appStartTime]);
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/system-status');
+      const res = await fetch('http://192.168.1.100:5000/api/system-status');
       const data = await res.json();
       setStatusData(data);
     } catch (err) {
@@ -47,7 +43,6 @@ React.useEffect(() => {
     return new Date(ts).toLocaleString();
   };
 
-  // Map compartment status to hardware items
   const getCompartmentStatus = (comp) => {
     if (!statusData?.compartments) return false;
     const found = statusData.compartments.find(c => c.compartment === comp);
@@ -61,35 +56,35 @@ React.useEffect(() => {
   };
 
   const hardware = [
-    { 
-      label: 'Platform A — Load Cell Array (Recyclable)', 
-      connected: getCompartmentStatus('A'), 
-      lastPing: getLastPing('A') 
+    {
+      label: 'Platform A — Load Cell Array (Recyclable)',
+      connected: getCompartmentStatus('A'),
+      lastPing: getLastPing('A')
     },
-    { 
-      label: 'ESP32-CAM A (Recyclable)', 
-      connected: getCompartmentStatus('A'), 
-      lastPing: getLastPing('A') 
+    {
+      label: 'ESP32-CAM A (Recyclable)',
+      connected: getCompartmentStatus('A'),
+      lastPing: getLastPing('A')
     },
-    { 
-      label: 'Arduino Uno A (Recyclable)', 
-      connected: getCompartmentStatus('A'), 
-      lastPing: getLastPing('A') 
+    {
+      label: 'Arduino Uno A (Recyclable)',
+      connected: getCompartmentStatus('A'),
+      lastPing: getLastPing('A')
     },
-    { 
-      label: 'Platform B — Load Cell Array (Non-Biodegradable)', 
-      connected: false, 
-      lastPing: 'Not yet integrated' 
+    {
+      label: 'Platform B — Load Cell Array (Non-Biodegradable)',
+      connected: false,
+      lastPing: 'Not yet integrated'
     },
-    { 
-      label: 'Platform C — Load Cell Array (Hazardous)', 
-      connected: false, 
-      lastPing: 'Not yet integrated' 
+    {
+      label: 'Platform C — Load Cell Array (Hazardous)',
+      connected: false,
+      lastPing: 'Not yet integrated'
     },
-    { 
-      label: 'MQTT Broker', 
-      connected: true, 
-      lastPing: 'Active' 
+    {
+      label: 'MQTT Broker',
+      connected: true,
+      lastPing: 'Active'
     },
   ];
 
@@ -220,7 +215,9 @@ React.useEffect(() => {
                 borderRadius: '8px', transition: 'width 1s ease',
               }}/>
             </div>
-            <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>HH:MM:SS since page loaded</div>
+            <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
+              HH:MM:SS since dashboard opened
+            </div>
           </div>
 
           {/* Last Sync Time */}
