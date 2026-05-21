@@ -30,6 +30,8 @@ function Report() {
 
   React.useEffect(() => {
     fetchRecords();
+    const interval = setInterval(fetchRecords, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const totalPages = Math.ceil(records.length / recordsPerPage);

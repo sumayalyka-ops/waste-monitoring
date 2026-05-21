@@ -164,7 +164,14 @@ function Analytics() {
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={analyticsData.chart_data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#666' }} />
+                    <XAxis 
+  dataKey="date" 
+  tick={{ fontSize: 11, fill: '#666' }}
+  tickFormatter={(val) => {
+    const d = new Date(val);
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  }}
+/>
                     <YAxis tick={{ fontSize: 11, fill: '#666' }} />
                     <Tooltip
                       formatter={(value) => [`${parseFloat(value).toFixed(2)} kg`, 'Weight']}
