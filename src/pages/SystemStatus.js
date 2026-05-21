@@ -1,17 +1,24 @@
 import React from 'react';
 
+const SESSION_START = Date.now();
+
 function SystemStatus() {
   const [uptime, setUptime] = React.useState(0);
   const [statusData, setStatusData] = React.useState(null);
 
-  React.useEffect(() => {
-    const timer = setInterval(() => setUptime(prev => prev + 1), 1000);
+React.useEffect(() => {
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - SESSION_START) / 1000);
+      setUptime(elapsed);
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, []);
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/system-status');
+      const res = await fetch('http://192.168.1.21:5000/api/system-status');
       const data = await res.json();
       setStatusData(data);
     } catch (err) {
@@ -50,15 +57,14 @@ function SystemStatus() {
     return found?.last_updated ? new Date(found.last_updated).toLocaleString() : '--';
   };
 
-  const hardware = [
-    { label: 'Weight Sensor A (Recyclable)', connected: getCompartmentStatus('A'), lastPing: getLastPing('A') },
-    { label: 'Weight Sensor B', connected: getCompartmentStatus('B'), lastPing: getLastPing('B') },
-    { label: 'Weight Sensor C', connected: getCompartmentStatus('C'), lastPing: getLastPing('C') },
-    { label: 'Camera Module A', connected: false, lastPing: '--' },
-    { label: 'Camera Module B', connected: false, lastPing: '--' },
+const hardware = [
+    { label: 'Platform A — Load Cell Array (Recyclable)', connected: getCompartmentStatus('A'), lastPing: getLastPing('A') },
+    { label: 'ESP32-CAM A (Recyclable)', connected: false, lastPing: 'Pending integration' },
+    { label: 'Arduino Uno A (Recyclable)', connected: getCompartmentStatus('A'), lastPing: getLastPing('A') },
+    { label: 'Platform B — Load Cell Array (Non-Biodegradable)', connected: false, lastPing: 'Not yet integrated' },
+    { label: 'Platform C — Load Cell Array (Hazardous)', connected: false, lastPing: 'Not yet integrated' },
     { label: 'MQTT Broker', connected: true, lastPing: 'Active' },
   ];
-
   const allConnected = hardware.every(hw => hw.connected);
   const logs = statusData?.logs || [];
 

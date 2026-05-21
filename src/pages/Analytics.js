@@ -9,7 +9,7 @@ function Analytics() {
 
   const fetchAnalytics = async () => {
     try {
-      let url = `http://192.168.1.14:5000/api/analytics?type=${activeTab.toLowerCase().replace('-', '')}`;
+      let url = `http://192.168.1.21:5000/api/analytics?type=${activeTab.toLowerCase().replace('-', '')}`;
       if (dateFrom && dateTo) {
         url += `&from=${dateFrom}&to=${dateTo}`;
       }
