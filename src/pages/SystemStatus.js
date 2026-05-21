@@ -1,23 +1,24 @@
 import React from 'react';
 
-function SystemStatus({ appStartTime }) {
+const SESSION_START = Date.now();
+
+function SystemStatus() {
   const [uptime, setUptime] = React.useState(0);
   const [statusData, setStatusData] = React.useState(null);
 
-  // Uptime — uses appStartTime from App.js, never resets on navigation
-  React.useEffect(() => {
+React.useEffect(() => {
     const tick = () => {
-      const elapsed = Math.floor((Date.now() - appStartTime) / 1000);
+      const elapsed = Math.floor((Date.now() - SESSION_START) / 1000);
       setUptime(elapsed);
     };
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [appStartTime]);
+  }, []);
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://192.168.1.100:5000/api/system-status');
+      const res = await fetch('http://192.168.1.21:5000/api/system-status');
       const data = await res.json();
       setStatusData(data);
     } catch (err) {
@@ -43,6 +44,7 @@ function SystemStatus({ appStartTime }) {
     return new Date(ts).toLocaleString();
   };
 
+  // Map compartment status to hardware items
   const getCompartmentStatus = (comp) => {
     if (!statusData?.compartments) return false;
     const found = statusData.compartments.find(c => c.compartment === comp);
@@ -55,39 +57,14 @@ function SystemStatus({ appStartTime }) {
     return found?.last_updated ? new Date(found.last_updated).toLocaleString() : '--';
   };
 
-  const hardware = [
-    {
-      label: 'Platform A — Load Cell Array (Recyclable)',
-      connected: getCompartmentStatus('A'),
-      lastPing: getLastPing('A')
-    },
-    {
-      label: 'ESP32-CAM A (Recyclable)',
-      connected: getCompartmentStatus('A'),
-      lastPing: getLastPing('A')
-    },
-    {
-      label: 'Arduino Uno A (Recyclable)',
-      connected: getCompartmentStatus('A'),
-      lastPing: getLastPing('A')
-    },
-    {
-      label: 'Platform B — Load Cell Array (Non-Biodegradable)',
-      connected: false,
-      lastPing: 'Not yet integrated'
-    },
-    {
-      label: 'Platform C — Load Cell Array (Hazardous)',
-      connected: false,
-      lastPing: 'Not yet integrated'
-    },
-    {
-      label: 'MQTT Broker',
-      connected: true,
-      lastPing: 'Active'
-    },
+const hardware = [
+    { label: 'Platform A — Load Cell Array (Recyclable)', connected: getCompartmentStatus('A'), lastPing: getLastPing('A') },
+    { label: 'ESP32-CAM A (Recyclable)', connected: false, lastPing: 'Pending integration' },
+    { label: 'Arduino Uno A (Recyclable)', connected: getCompartmentStatus('A'), lastPing: getLastPing('A') },
+    { label: 'Platform B — Load Cell Array (Non-Biodegradable)', connected: false, lastPing: 'Not yet integrated' },
+    { label: 'Platform C — Load Cell Array (Hazardous)', connected: false, lastPing: 'Not yet integrated' },
+    { label: 'MQTT Broker', connected: true, lastPing: 'Active' },
   ];
-
   const allConnected = hardware.every(hw => hw.connected);
   const logs = statusData?.logs || [];
 
@@ -215,9 +192,7 @@ function SystemStatus({ appStartTime }) {
                 borderRadius: '8px', transition: 'width 1s ease',
               }}/>
             </div>
-            <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
-              HH:MM:SS since dashboard opened
-            </div>
+            <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>HH:MM:SS since page loaded</div>
           </div>
 
           {/* Last Sync Time */}

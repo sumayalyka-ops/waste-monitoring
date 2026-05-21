@@ -13,11 +13,11 @@ function Dashboard() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const dashRes = await fetch('http://localhost:5000/api/dashboard');
+        const dashRes = await fetch('http://192.168.1.21:5000/api/dashboard');
         const dashData = await dashRes.json();
         setDashboardData(dashData);
 
-        const compRes = await fetch('http://localhost:5000/api/compartments');
+        const compRes = await fetch('http://192.168.1.21:5000/api/compartments');
         const compData = await compRes.json();
         setCompartments(compData);
       } catch (err) {

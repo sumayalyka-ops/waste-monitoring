@@ -13,7 +13,7 @@ function Report() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      let url = `http://localhost:5000/api/records?`;
+      let url = `http://192.168.1.21:5000/api/records?`;
       if (wasteTypeFilter !== 'All') url += `type=${wasteTypeFilter}&`;
       if (compartmentFilter !== 'All') url += `compartment=${compartmentFilter}&`;
       if (dateFrom) url += `from=${dateFrom}&`;
